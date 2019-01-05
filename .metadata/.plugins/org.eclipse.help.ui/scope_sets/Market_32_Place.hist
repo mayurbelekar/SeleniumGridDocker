@@ -1,0 +1,5 @@
+#Mon Dec 17 11:36:40 IST 2018
+__DEFAULT__=false
+org.eclipse.sdk.Eclipse.master=true
+org.eclipse.help.ui.localSearch.master=true
+expression=Market Place
