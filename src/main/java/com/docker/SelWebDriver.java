@@ -2,7 +2,6 @@ package com.docker;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -30,13 +29,15 @@ public class SelWebDriver {
 
 	public void getWebDriver(GlobalDTO globalData) {
 		Mode mode = Mode.valueOf(globalData.getMode());
+		Browser browser = Browser.valueOf(globalData.getBrowser());
 		switch (mode) {
 		case Local:
-			// TODO
+			driver = this.getLocalDriver(browser);
 			break;
 
 		case Docker:
 			try {
+				capabilities = this.getDesiredCapabilities(browser);
 				driver = new RemoteWebDriver(new URL(globalData.getHubUrl()), capabilities);
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
@@ -56,10 +57,10 @@ public class SelWebDriver {
 			// TODO
 			break;
 		}
-		driver.manage().window().maximize();
 	}
 	
-	public void getLocalDriver(Browser browser) {
+	public WebDriver getLocalDriver(Browser browser) {
+		
 		switch (browser) {
 		case Firefox:
 			// TODO
@@ -80,6 +81,7 @@ public class SelWebDriver {
 		default:
 			break;
 		}
+		return driver;
 	}
 	
 	public DesiredCapabilities getDesiredCapabilities(Browser browser) {
@@ -100,7 +102,8 @@ public class SelWebDriver {
 		default:
 			break;
 		}
-		
+		capabilities.setJavascriptEnabled(true);
+		capabilities.setAcceptInsecureCerts(true);
 		return capabilities;
 	}
 }
