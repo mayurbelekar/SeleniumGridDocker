@@ -88,6 +88,7 @@ public class DockerAction {
 	
 	public static void main(String[] as) throws InterruptedException {
 		DockerCommands commands = new DockerCommands();
+		System.out.println(System.getProperty("os.name"));
 		WebDriver driver1;
 		WebDriver driver;
 		DesiredCapabilities capabilities = DesiredCapabilities.chrome();

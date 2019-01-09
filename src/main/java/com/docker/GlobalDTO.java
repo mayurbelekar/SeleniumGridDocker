@@ -17,6 +17,8 @@ public class GlobalDTO {
 	private WebElement element = null;
 	private String sessionId = null;
 	private String nodeName = null;
+	private String execType = null;
+	private String driverpath = null;
 	
 	public String getBrowser() {
 		return browser;
@@ -88,5 +90,21 @@ public class GlobalDTO {
 	
 	public String getNodeName(){
 		return nodeName;
+	}
+	
+	public void setExecType(String execType) {
+		this.execType = execType;
+	}
+	
+	public String getExecType() {
+		return execType;
+	}
+	
+	public void setDriverPath(String driverpath) {
+		this.driverpath = driverpath;
+	}
+	
+	public String getDriverPath() {
+		return driverpath;
 	}
 }
