@@ -44,6 +44,10 @@
 		    <artifactId>json</artifactId>
 		    <version>20180813</version>
 		</dependency>
-		 
+	    <dependency>
+	        <groupId>com.github.2gis.winium</groupId>
+	        <artifactId>winium-webdriver</artifactId>
+	        <version>0.1.0-1</version>
+	    </dependency>
 	</dependencies>
 </project>
