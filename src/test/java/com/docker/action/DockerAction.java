@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
@@ -89,25 +91,21 @@ public class DockerAction {
 	public static void main(String[] as) throws InterruptedException {
 		DockerCommands commands = new DockerCommands();
 		System.out.println(System.getProperty("os.name"));
-		WebDriver driver1;
 		WebDriver driver;
 		DesiredCapabilities capabilities = DesiredCapabilities.chrome();
 		try {
+			ChromeOptions options = new ChromeOptions();
+			options.setHeadless(false);
+			options.addArguments("start-maximized");
+			capabilities.setCapability(ChromeOptions.CAPABILITY, options);
 			driver = new RemoteWebDriver(new URL("http://172.17.0.2:4444/wd/hub"), capabilities);
 			driver.get("http://www.facebook.com");
 			Thread.sleep(10000);
 			SessionId sessionId = ((RemoteWebDriver)driver).getSessionId();
 			System.out.println("SessionId: "+sessionId.toString());
 			
-			driver1 = new RemoteWebDriver(new URL("http://172.17.0.2:4444/wd/hub"), capabilities);
-			driver1.get("http://www.facebook.com");
-			Thread.sleep(10000);
-			sessionId = ((RemoteWebDriver)driver1).getSessionId();
-			System.out.println("SessionId: "+sessionId.toString());
-			
 			System.out.println("Closing browser");
 			driver.quit();
-			driver1.quit();
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
