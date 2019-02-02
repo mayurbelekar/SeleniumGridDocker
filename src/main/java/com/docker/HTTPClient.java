@@ -12,6 +12,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -19,20 +20,21 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.AbstractHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 public class HTTPClient {
-	HttpClient client;
-	HttpResponse response;
-	
+	RestClientDTO clientData;
 	public HTTPClient() {
-		client = new DefaultHttpClient();
+		clientData = new RestClientDTO();
 	}
 
-	public HttpResponse getRequest(URI uri, List<NameValuePair> headers) {
-		HttpUriRequest request = new HttpGet(uri);
+	public RestClientDTO getRequest(URI uri, List<NameValuePair> headers) {
+		HttpGet request = new HttpGet(uri);
 		if(headers != null){
 			Iterator<NameValuePair> iterator = headers.iterator();
 			while (iterator.hasNext()) {
@@ -40,20 +42,23 @@ public class HTTPClient {
 				request.setHeader(header.getName(), header.getValue());
 			}
 		}
-		try {
-			response = client.execute(request);
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		clientData.setRequestLine(request.getRequestLine());
+		clientData.setReqHeader(request.getAllHeaders());
+		try (CloseableHttpClient client = HttpClientBuilder.create().build();
+				CloseableHttpResponse response = client.execute(request)){
+			
+			clientData.setStatusLine(response.getStatusLine());
+			clientData.setRespHeader(response.getAllHeaders());
+			clientData.setEntity(response.getEntity());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		onRequestFail(response);
-		return response;
+			onRequestFail(clientData);
+		} 
+		
+		return clientData;
 	}
 	
-	public HttpResponse postRequest(URI uri, List<NameValuePair> headers, String payload) {
+	public RestClientDTO postRequest(URI uri, List<NameValuePair> headers, String payload) {
 		StringEntity entity = new StringEntity(payload, "UTF-8");
 		HttpPost post = new HttpPost(uri);
 		post.setEntity(entity);
@@ -65,56 +70,28 @@ public class HTTPClient {
 				request.setHeader(header.getName(), header.getValue());
 			}
 		}
-		try {
-			response = client.execute(request);
+		clientData.setRequestLine(request.getRequestLine());
+		clientData.setReqHeader(request.getAllHeaders());
+		
+		try (CloseableHttpClient client = HttpClientBuilder.create().build();
+				CloseableHttpResponse response = client.execute(request)){
+					clientData.setStatusLine(response.getStatusLine());
+					clientData.setRespHeader(response.getAllHeaders());
+					clientData.setEntity(response.getEntity());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			onRequestFail(clientData);
 		}
-		onRequestFail(response);
-		return response;
+		return clientData;
 	}
 	
-	public HttpResponse putRequest(URI uri, List<NameValuePair> headers, String payload) {
-		StringEntity entity = new StringEntity(payload, "UTF-8");
-		HttpPut httpPut = new HttpPut(uri);
-		httpPut.setEntity(entity);
-		HttpUriRequest request = httpPut;
-		if(headers != null){
-			Iterator<NameValuePair> iterator = headers.iterator();
-			while (iterator.hasNext()) {
-				NameValuePair header = iterator.next();
-				request.setHeader(header.getName(), header.getValue());
-			}
-		}
-		try {
-			response = client.execute(request);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		onRequestFail(response);
-		return response;
+	public void putRequest() {
+		
 	}
 	
-	public HttpResponse deleteRequest(URI uri, List<NameValuePair> headers) {
-		HttpUriRequest request = new HttpDelete(uri);
-		if(headers != null){
-			Iterator<NameValuePair> iterator = headers.iterator();
-			while (iterator.hasNext()) {
-				NameValuePair header = iterator.next();
-				request.setHeader(header.getName(), header.getValue());
-			}
-		}
-		try {
-			response = client.execute(request);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		onRequestFail(response);
-		return response;
- 	}
+	public void deleteRequest() {
+		
+	}
 	
 	public URI buildURI(String schema, String host, String extendedUrl, List<NameValuePair> queryParams) throws URISyntaxException {
 		if(queryParams != null) {
@@ -124,19 +101,19 @@ public class HTTPClient {
 		}
 	}
 	
-	public void onRequestFail(HttpResponse response) {
-		System.out.println("Response Code: "+ response.getStatusLine());
-		if(response.getStatusLine().getStatusCode() >= HttpStatus.SC_BAD_REQUEST) {
-			for(int i=0; i<= response.getAllHeaders().length; i++) {
-				System.out.println(response.getAllHeaders()[i].getName()+": "+response.getAllHeaders()[i].getValue());
+	public void onRequestFail(RestClientDTO clientData) {
+		System.out.println("Response Code: "+ clientData.getStatusLine().getStatusCode() +" "+ clientData.getStatusLine().getReasonPhrase());
+		if(clientData.getStatusLine().getStatusCode() >= HttpStatus.SC_BAD_REQUEST) {
+			for(int i=0; i<= clientData.getRespHeader().length; i++) {
+				System.out.println(clientData.getRespHeader()[i].getName()+": "+clientData.getRespHeader()[i].getValue());
 			}
 			
 		}
 	}
 	
-	public String getResponseBody(HttpResponse response) {
+	public String getResponseBody(RestClientDTO clientData) {
 		try {
-			 return EntityUtils.toString(response.getEntity(), "UTF-8");
+			 return EntityUtils.toString(clientData.getEntity(), "UTF-8");
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -147,8 +124,8 @@ public class HTTPClient {
 		return null;
 	}
 	
-	public JSONObject getJSONObject(HttpResponse response) {
-		String responseBody = getResponseBody(response);
+	public JSONObject getJSONObject(RestClientDTO clientData) {
+		String responseBody = getResponseBody(clientData);
 		JSONObject object = new JSONObject(responseBody);
 		return object;
 	}
